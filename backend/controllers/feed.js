@@ -11,7 +11,7 @@ exports.getPosts = async (req, res, next) => {
   const perPage = 2;
   try {
     const totalItems = await Post.find().countDocuments();
-    const posts = await Post.find()
+    const posts = await Post.find().populate('creator')
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
@@ -29,6 +29,7 @@ exports.getPosts = async (req, res, next) => {
 };
 
 exports.createPost = async (req, res, next) => {
+  console.log('createPost...');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect.');
@@ -46,7 +47,7 @@ exports.createPost = async (req, res, next) => {
   const post = new Post({
     title: title,
     content: content,
-    imageUrl: imageUrl,
+    imageUrl: imageUrl.replace('\\', '/'),
     creator: req.userId
   });
   try {
@@ -69,7 +70,7 @@ exports.createPost = async (req, res, next) => {
 
 exports.getPost = async (req, res, next) => {
   const postId = req.params.postId;
-  const post = await Post.findById(postId);
+  const post = await Post.findById(postId).populate('creator');
   try {
     if (!post) {
       const error = new Error('Could not find post.');
@@ -120,7 +121,7 @@ exports.updatePost = async (req, res, next) => {
       clearImage(post.imageUrl);
     }
     post.title = title;
-    post.imageUrl = imageUrl;
+    post.imageUrl = imageUrl.replace('\\', '/');
     post.content = content;
     const result = await post.save();
     res.status(200).json({ message: 'Post updated!', post: result });
