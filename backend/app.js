@@ -1,5 +1,7 @@
 const path = require('path');
-
+// .env variables
+require('./util/node_env')();
+require ('custom-env').env(process.env.NODE_ENV);
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -58,10 +60,13 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
-
+console.log('---------------------');
+console.log(process.env.NODE_ENV);
+console.log(process.env.DB_URL);
+console.log('---------------------');
 mongoose
   .connect(
-    'mongodb+srv://maximilian:9u4biljMQc4jjqbe@cluster0-ntrwp.mongodb.net/messages?retryWrites=true'
+    process.env.DB_URL
   )
   .then(result => {
     app.listen(8080);
