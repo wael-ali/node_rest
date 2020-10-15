@@ -40,13 +40,16 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
-    openSocket('http://localhost:8080');
+    const socket = openSocket('http://localhost:8080');
+    socket.on('posts', data => {
+      this.addPost(data.post);
+    });
   }
   addPost = post => {
      this.setState(prevState => {
        const updatedPosts = [...prevState.posts];
        if (prevState.postPage === 1){
-         updatedPosts.pop();
+         // updatedPosts.pop();
          updatedPosts.unshift(post);
        }
        return {
@@ -181,8 +184,6 @@ class Feed extends Component {
               p => p._id === prevState.editPost._id
             );
             updatedPosts[postIndex] = post;
-          } else if (prevState.posts.length < 2) {
-            updatedPosts = prevState.posts.concat(post);
           }
           return {
             posts: updatedPosts,
@@ -243,7 +244,7 @@ class Feed extends Component {
   };
 
   render() {
-    return (`
+    return (
       <Fragment>
         <ErrorHandler error={this.state.error} onHandle={this.errorHandler} />
         <FeedEdit
@@ -305,7 +306,6 @@ class Feed extends Component {
           )}
         </section>
       </Fragment>
-      `
     );
   }
 }
