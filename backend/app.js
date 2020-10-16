@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
 
+const Socket = require('./socket');
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
 
@@ -71,8 +72,9 @@ mongoose
   )
   .then(result => {
     const server = app.listen(8080);
-    const io = require('./socket').init(server);
-    io.on('connection', socket => {
+    const socket = new Socket();
+    socket.init(server);
+    socket.getIo().on('connection', socket => {
       console.log('Client connected.');
     });
   })

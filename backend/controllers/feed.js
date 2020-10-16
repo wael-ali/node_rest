@@ -3,9 +3,11 @@ const path = require('path');
 
 const { validationResult } = require('express-validator/check');
 
-const io = require('../socket');
+const Socket = require('../socket');
 const Post = require('../models/post');
 const User = require('../models/user');
+
+const socket = new Socket();
 
 exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -58,7 +60,7 @@ exports.createPost = async (req, res, next) => {
     const user = await User.findById(req.userId);
     user.posts.push(post);
     await user.save();
-    io.getIO().emit('posts', {
+    socket.getIo().emit('posts', {
       action: 'create',
       post: {...post._doc, creator: { _id: req.userId, name: user.name}}
     });
@@ -131,7 +133,7 @@ exports.updatePost = async (req, res, next) => {
     post.imageUrl = imageUrl.replace('\\', '/');
     post.content = content;
     const result = await post.save();
-    io.getIO().emit('posts', {
+    socket.getIo().emit('posts', {
       action: 'update',
       post: result
     });
@@ -166,7 +168,7 @@ exports.deletePost = async (req, res, next) => {
     const user = await User.findById(req.userId);
     user.posts.pull(postId);
     await user.save();
-    io.getIO().emit('posts', {
+    socket.getIo().emit('posts', {
       action: 'delete',
       post: postId
     })
