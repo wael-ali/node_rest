@@ -1,7 +1,9 @@
-const User = require('../models/user');
 const bcrybt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+
+const User = require('../models/user');
+const Post = require('../models/post');
 
 module.exports = {
     // resolverName(args, req){}
@@ -55,6 +57,36 @@ module.exports = {
         );
 
          return { token: token, userId: user._id.toString() }
-
+    },
+    createPost: async  ({ postInput }, req) => {
+       const errors = [];
+       if (!validator.isLength(postInput.title, { min: 5})){
+           errors.push({ field: 'title', message: 'Title too short!' });
+       }
+       if (!validator.isLength(postInput.content, { min: 5})){
+           errors.push({ field: 'content', message: 'content too short!' });
+       }
+       // if (!validator.isUrl(postInput.imageUrl, { min: 5})){
+       //     errors.push({ field: 'imageUrl', message: 'Image Url not valid' });
+       // }
+       if (errors.length > 0){
+           const error = new Error('Not Valid input!');
+           error.code = 422;
+           error.data = errors;
+           throw error;
+       }
+       const post = new Post({
+           title: postInput.title,
+           content: postInput.content,
+           imageUrl: postInput.imageUrl
+       });
+       const createdPost = await post.save();
+       // Add post to users posts
+        return {
+            ...createdPost,
+            _id: createdPost._id.toString(),
+            createdAt: createdPost.createdAt.toISOString(),
+            updatedAt: createdPost.updatedAt.toISOString(),
+        }
     }
 };
