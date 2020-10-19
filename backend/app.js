@@ -2,14 +2,15 @@ const path = require('path');
 // .env variables
 require('./util/node_env')();
 require ('custom-env').env(process.env.NODE_ENV);
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const { graphqlHTTP } = require('express-graphql');
 
-const Socket = require('./socket');
-const feedRoutes = require('./routes/feed');
-const authRoutes = require('./routes/auth');
+const graphqlSchema = require('./graphql/schema');
+const graphqlResolvers = require('./graphql/resolvers');
 
 const app = express();
 
@@ -52,9 +53,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/feed', feedRoutes);
-app.use('/auth', authRoutes);
-
+app.use('/graphql', graphqlHTTP({
+  schema: graphqlSchema,
+  rootValue: graphqlResolvers
+}));
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
@@ -62,20 +64,17 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
-console.log('---------------------');
-console.log(process.env.NODE_ENV);
-console.log(process.env.DB_URL);
-console.log('---------------------');
+
 mongoose
   .connect(
     process.env.DB_URL
   )
   .then(result => {
     const server = app.listen(8080);
-    const socket = new Socket();
-    socket.init(server);
-    socket.getIo().on('connection', socket => {
-      console.log('Client connected.');
-    });
+    // const socket = new Socket();
+    // socket.init(server);
+    // socket.getIo().on('connection', socket => {
+    //   console.log('Client connected.');
+    // });
   })
   .catch(err => console.log(err));
