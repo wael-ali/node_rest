@@ -53,10 +53,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/graphql', graphqlHTTP({
-  schema: graphqlSchema,
-  rootValue: graphqlResolvers
-}));
+app.use(
+    '/graphql',
+    graphqlHTTP({
+      schema: graphqlSchema,
+      rootValue: graphqlResolvers,
+      graphiql: true
+    })
+);
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;

@@ -18,7 +18,7 @@ module.exports = buildSchema(`
         password: String
         posts: [Post!]!
     }
-    iput UserInputData {
+    input UserInputData {
         email: String!
         name: String!
         password: String!
@@ -26,7 +26,11 @@ module.exports = buildSchema(`
    type RootMutation {
         createUser(userInput: UserInputData): User!
    }
+   type RootQuery {
+        hello: String
+   }
     schema {
-        mutation:  RootQuery
+        query: RootQuery
+        mutation:  RootMutation
     }
 `);
