@@ -132,11 +132,11 @@ module.exports = {
         };
     },
     post: async ({ id }, req) => {
-        // if (!req.isAuth){
-        //     const error = new Error('Not Authorized!');
-        //     error.code = 401;
-        //     throw error;
-        // }
+        if (!req.isAuth){
+            const error = new Error('Not Authorized!');
+            error.code = 401;
+            throw error;
+        }
         const post = await Post.findById(id)
             .populate('creator')
         ;
