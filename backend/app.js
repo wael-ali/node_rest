@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 // .env variables
 require('./util/node_env')();
 require ('custom-env').env(process.env.NODE_ENV);
@@ -25,21 +26,21 @@ const fileStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === 'image/png' ||
-    file.mimetype === 'image/jpg' ||
-    file.mimetype === 'image/jpeg'
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
+    if (
+        file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg'
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
 };
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json
 app.use(
-  multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+    multer({storage: fileStorage, fileFilter: fileFilter}).single('image')
 );
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
@@ -56,6 +57,22 @@ app.use((req, res, next) => {
   next();
 });
 app.use(auth);
+app.put('/post-image', (req, res, next) => {
+    if (!req.isAuth){
+        throw new Error('Not Authenticated!');
+    }
+    if (!req.file) {
+        res.status(200).json({message: 'No file provided!'});
+    }
+    if (req.body.oldPath) {
+        clearImage(req.body.oldPath);
+    }
+    console.log('post-image: ', req.body, req.file);
+    return res
+        .status(201)
+        .json({ message: 'File stored', filePath: req.file.path })
+    ;
+});
 app.use(
     '/graphql',
     graphqlHTTP({
@@ -82,16 +99,22 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect(
-    process.env.DB_URL,
-    { useUnifiedTopology: true, useNewUrlParser: true }
-  )
-  .then(result => {
-    const server = app.listen(8080);
-    // const socket = new Socket();
-    // socket.init(server);
-    // socket.getIo().on('connection', socket => {
-    //   console.log('Client connected.');
-    // });
-  })
-  .catch(err => console.log(err));
+    .connect(
+        process.env.DB_URL,
+        {useUnifiedTopology: true, useNewUrlParser: true}
+    )
+    .then(result => {
+        const server = app.listen(8080);
+        // const socket = new Socket();
+        // socket.init(server);
+        // socket.getIo().on('connection', socket => {
+        //   console.log('Client connected.');
+        // });
+    })
+    .catch(err => console.log(err));
+
+
+const clearImage = filePath => {
+    filePath = path.join(__dirname, '..', filePath);
+    fs.unlink(filePath, err => console.log(err));
+};
