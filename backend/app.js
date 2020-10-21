@@ -41,7 +41,6 @@ app.use(bodyParser.json()); // application/json
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
 );
-console.log(path.join(__dirname, 'images'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use((req, res, next) => {
@@ -63,7 +62,7 @@ app.use(
       schema: graphqlSchema,
       rootValue: graphqlResolvers,
       graphiql: true,
-      formatError: error => {
+      customFormatErrorFn: error => {
         if (!error.originalError){
           return error;
         }
@@ -84,7 +83,8 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    process.env.DB_URL
+    process.env.DB_URL,
+    { useUnifiedTopology: true, useNewUrlParser: true }
   )
   .then(result => {
     const server = app.listen(8080);

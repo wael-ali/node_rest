@@ -95,12 +95,13 @@ module.exports = {
        });
        const createdPost = await post.save();
         user.posts.push(createdPost);
-        user.save();
-        return {
-            ...createdPost,
+        await user.save();
+        const p =  {
+            ...createdPost._doc,
             _id: createdPost._id.toString(),
             createdAt: createdPost.createdAt.toISOString(),
             updatedAt: createdPost.updatedAt.toISOString(),
         }
+        return p;
     }
 };
