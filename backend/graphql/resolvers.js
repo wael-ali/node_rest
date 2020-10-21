@@ -104,12 +104,12 @@ module.exports = {
         }
         return p;
     },
-    posts: async (req) => {
-        // if (!req.isAuth){
-        //     const error = new Error('Not Authenticated!');
-        //     error.code = 403;
-        //     throw error;
-        // }
+    posts: async (args,req) => {
+        if (!req.isAuth){
+            const error = new Error('Not Authenticated!');
+            error.code = 401;
+            throw error;
+        }
         const totalPosts = await Post.find().countDocuments();
         const posts = await Post.find()
             .sort({createdAt: -1})
