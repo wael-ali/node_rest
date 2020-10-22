@@ -162,7 +162,7 @@ class Feed extends Component {
     .then(res => res.json())
     .then(fileResData => {
       let imageUrl = fileResData.filePath;
-      imageUrl  = imageUrl.replace('\\', '/');
+      imageUrl  = imageUrl ? imageUrl.replace('\\', '/') : imageUrl;
       let graphqlQuery = {
         query: `
         mutation {
@@ -179,6 +179,24 @@ class Feed extends Component {
         }
       `
       };
+      if (this.state.editPost){
+        graphqlQuery = {
+          query: `
+        mutation {
+          updatePost(id: "${this.state.editPost._id}",postData: { title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}" }){
+            _id
+            title
+            content
+            imageUrl
+            createdAt
+            creator {
+              name
+            }
+          }
+        }
+      `
+        };
+      }
       return fetch('http://localhost:8080/graphql', {
         method: 'POST',
         body: JSON.stringify(graphqlQuery),
@@ -195,13 +213,14 @@ class Feed extends Component {
       if (resData.errors){
         throw new Error(resData.errors[0].message);
       }
+      let resDataField = this.state.editPost ? 'updatePost' : 'createPost';
       const post = {
-        _id: resData.data.createPost._id,
-        title: resData.data.createPost.title,
-        content: resData.data.createPost.content,
-        creator: resData.data.createPost.creator,
-        imagePath: resData.data.createPost.imageUrl,
-        createdAt: resData.data.createPost.createdAt
+        _id: resData.data[resDataField]._id,
+        title: resData.data[resDataField].title,
+        content: resData.data[resDataField].content,
+        creator: resData.data[resDataField].creator,
+        imagePath: resData.data[resDataField].imageUrl,
+        createdAt: resData.data[resDataField].createdAt
       };
       this.setState(prevState => {
         let updatedPosts = [... prevState.posts];

@@ -152,4 +152,51 @@ module.exports = {
             updatedAt: post.updatedAt.toISOString(),
         };
     },
+    updatePost: async ({ id, postData }, req) => {
+        if (!req.isAuth){
+            const error = new Error('Not Authorized!');
+            error.code = 401;
+            throw error;
+        }
+        let post = await Post.findById(id)
+            .populate('creator')
+        ;
+        if (!post){
+            const error = new Error('Not Found!');
+            error.code = 404;
+            throw error;
+        }
+        if (post.creator._id.toString() !== req.userId.toString()){
+            const error = new Error('Not Authorized!');
+            error.code = 403;
+            throw error;
+        }
+        const errors = [];
+        if (!validator.isLength(postData.title, { min: 5})){
+            errors.push({ field: 'title', message: 'Title too short!' });
+        }
+        if (!validator.isLength(postData.content, { min: 5})){
+            errors.push({ field: 'content', message: 'content too short!' });
+        }
+        if (errors.length > 0){
+            const error = new Error('Not Valid input!');
+            error.code = 422;
+            error.data = errors;
+            throw error;
+        }
+        if (postData.imageUrl !== 'undefined'){
+            post.imageUrl = postData.imageUrl;
+        }
+        post.title = postData.title;
+        post.content = postData.content;
+
+        post = await post.save();
+
+        return {
+            ...post._doc,
+            _d: post._id.toString(),
+            createdAt: post.createdAt.toISOString(),
+            updatedAt: post.updatedAt.toISOString(),
+        };
+    },
 };
