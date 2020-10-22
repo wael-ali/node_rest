@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 const bcrybt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
@@ -199,4 +202,39 @@ module.exports = {
             updatedAt: post.updatedAt.toISOString(),
         };
     },
+    deletePost: async ({ id }, req) => {
+        if (!req.isAuth){
+            const error = new Error('Not Authorized!');
+            error.code = 401;
+            throw error;
+        }
+        let post = await Post.findById(id)
+            .populate('creator')
+        ;
+        if (!post){
+            const error = new Error('Not Found!');
+            error.code = 404;
+            throw error;
+        }
+        req.userId = '5f8ea8853d1e2614a8f75aa8';
+        if (post.creator._id.toString() !== req.userId.toString()){
+            const error = new Error('Not Authorized!');
+            error.code = 403;
+            throw error;
+        }
+        const deletedPost = await Post.findByIdAndRemove(id);
+        console.log('deleted Post: --- ', deletedPost);
+        clearImage(post.imageUrl);
+        const user = await User.findById(req.userId);
+        user.posts.pull(id);
+        await user.save();
+        return true;
+    },
+};
+
+
+const clearImage = filePath => {
+    const projRoot =  path.dirname(require.main.filename || process.mainModule.filename);
+    filePath = path.join(projRoot, filePath);
+    fs.unlink(filePath, err => console.log(err));
 };
