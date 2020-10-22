@@ -228,4 +228,39 @@ module.exports = {
         await user.save();
         return true;
     },
+    user: async (args, req) => {
+        if (!req.isAuth){
+            const error = new Error('Not Authorized!');
+            error.code = 401;
+            throw error;
+        }
+        const user = await User.findById(req.userId);
+        if (!user){
+            const error = new Error('User Not Found!');
+            error.code = 404;
+            throw error;
+        }
+        return {
+            ...user._doc
+        }
+    },
+    updateUserStatus: async ({ status }, req) => {
+        if (!req.isAuth){
+            const error = new Error('Not Authorized!');
+            error.code = 401;
+            throw error;
+        }
+        let user = await User.findById(req.userId);
+        if (!user){
+            const error = new Error('User Not Found!');
+            error.code = 404;
+            throw error;
+        }
+        user.status = status;
+        user = await user.save();
+        console.log('status: --- --- ', user);
+        return {
+            ...user._doc
+        }
+    },
 };
