@@ -1,12 +1,10 @@
-const path = require('path');
-const fs = require('fs');
-
 const bcrybt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 const Post = require('../models/post');
+const { clearImage } = require('../util/file');
 
 module.exports = {
     // resolverName(args, req){}
@@ -230,11 +228,4 @@ module.exports = {
         await user.save();
         return true;
     },
-};
-
-
-const clearImage = filePath => {
-    const projRoot =  path.dirname(require.main.filename || process.mainModule.filename);
-    filePath = path.join(projRoot, filePath);
-    fs.unlink(filePath, err => console.log(err));
 };

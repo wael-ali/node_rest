@@ -13,6 +13,7 @@ const { graphqlHTTP } = require('express-graphql');
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolvers = require('./graphql/resolvers');
 const auth = require('./middleware/auth');
+const { clearImage } = require('./util/file');
 
 const app = express();
 
@@ -112,10 +113,3 @@ mongoose
         // });
     })
     .catch(err => console.log(err));
-
-
-const clearImage = filePath => {
-    const projRoot =  path.dirname(require.main.filename || process.mainModule.filename);
-    filePath = path.join(projRoot, filePath);
-    fs.unlink(filePath, err => console.log(err));
-};
