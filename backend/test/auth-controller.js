@@ -1,5 +1,6 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const mongose = require('mongoose');
 
 const User = require('../models/user');
 const AuthController = require('../controllers/auth');
@@ -22,5 +23,49 @@ describe('Auth Controller - Login', function () {
             done()
         });
         User.findOne.restore();
+    });
+
+    it('should send aresponse with a valid user status for an existing user', function (done) {
+        const user_id = '5f91705e0d48d458084f2bb2';
+        const user_status = 'newly created!!';
+        mongose
+        .connect(
+                'mongodb+srv://node_toturial_1:WNct0GPpfk1rQfrv@cluster0.q4mpc.mongodb.net/node_test_2?retryWrites=true&w=majority'
+            )
+            .then(result => {
+                const user = new User({
+                    email: 'test@test.com',
+                    password: 'foobar',
+                    name: 'John Doe',
+                    status: user_status,
+                    posts: [],
+                    _id: user_id
+                });
+                return user.save();
+                // done();
+            })
+            .then(() => {
+                const req = { userId: user_id };
+                const res = { 
+                    statusCode: 200,
+                    userStatus: null,
+                    status: function (code) {
+                        this.statusCode = code;
+                        return this;
+                    },
+                    json: function (data) {
+                        this.userStatus = data.status
+                    }
+                };
+                AuthController.getUserStatus(req, res, () => {})
+                    .then(() => {
+                        expect(res.statusCode).to.be.equal(200);
+                        expect(res.userStatus).to.be.equal(user_status);
+                        done();
+                    })
+                ;
+            })
+            .catch(err => console.log(err))
+        ;
     });
 });
