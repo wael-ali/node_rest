@@ -61,7 +61,14 @@ describe('Auth Controller - Login', function () {
                     .then(() => {
                         expect(res.statusCode).to.be.equal(200);
                         expect(res.userStatus).to.be.equal(user_status);
-                        done();
+                        User.deleteMany({}) // Delete all users
+                            .then(() => {
+                                return mongose.disconnect();
+                            })
+                            .then(() => {
+                                done();
+                            })
+                        ;
                     })
                 ;
             })
